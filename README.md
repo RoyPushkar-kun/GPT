@@ -4,7 +4,7 @@ We developed this project as part of the **WIDS 5.0 Final Project**, where we im
 
 The model operates at the **character level** and is trained on a large plain-text dataset. It predicts the next character in a given sequence using a masked self-attention mechanism, enabling text generation in an autoregressive, one-character-at-a-time manner.
 
-### Key Features of the Project
+### Key Features of the Project:
 
 * Decoder-only Transformer architecture
 * Autoregressive character-level language model
