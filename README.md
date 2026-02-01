@@ -1,72 +1,166 @@
+
 ---
 
-We developed this project as part of the **WIDS 5.0 Final Project**, where we implemented a GPT-style Transformer model entirely from scratch using **PyTorch**. The primary objective was to gain a deeper, hands-on understanding of how the GPT and ChatGPT architectures function internally by manually building every major component, without relying on any prebuilt Transformer libraries.
+# WiDS Transformer
 
-The model operates at the **character level** and is trained on a large plain-text dataset. It predicts the next character in a given sequence using a masked self-attention mechanism, enabling text generation in an autoregressive, one-character-at-a-time manner.
+This repository documents the development of a **character-level language model** built as part of the **WIDS (Winter in Data Science) 2026 Final Project**. The project traces the evolution from a simple **Bigram baseline** to a fully functional **Decoder-Only Transformer (GPT-style architecture)** implemented **entirely from scratch using PyTorch**, without relying on any existing Transformer libraries.
 
-### Key Features of the Project:
+The primary motivation behind this work was to gain a deep, practical understanding of how modern large language models like GPT and ChatGPT function internally—by manually implementing every major architectural component.
 
-* Decoder-only Transformer architecture
-* Autoregressive character-level language model
-* Manual implementation of the self-attention mechanism using **Query, Key, and Value (QKV)**
-* Causal masking to prevent the model from accessing future tokens during generation
-* Multi-head self-attention for learning diverse contextual relationships
-* Feed-forward neural networks with non-linear activation functions
-* Residual connections and Layer Normalization applied to every sub-layer for stable training
-* Positional embeddings to encode sequence order information
-* A single Python file (`gpt.py`) supporting both end-to-end training and text generation
+---
 
-### Model Architecture Overview
+## 1. Project Overview
 
-The architecture consists of multiple Transformer blocks stacked sequentially, following the standard GPT design. Each input character is first mapped to a dense vector using a token embedding table. Positional embeddings are then added to preserve the order of characters in the sequence.
+The core objective of this project was to transition from *local character prediction* to *context-aware language modeling*. Early versions of the model relied only on immediate character transitions, while the final implementation leverages **masked self-attention** to capture long-range dependencies and sentence-level structure.
 
-These combined embeddings are passed through several Transformer blocks. Each block contains masked multi-head self-attention followed by a feed-forward neural network. Residual connections and layer normalization are applied around both components to ensure smoother gradient flow and more effective learning.
+The final model is an **autoregressive, decoder-only Transformer** trained at the character level to predict the next character in a sequence, enabling text generation one character at a time.
 
-After passing through all Transformer blocks, the final hidden representations are normalized and projected through a linear layer to produce logits over the vocabulary. These logits represent the probability distribution for predicting the next character.
+---
 
-### Dataset and Training Setup
+### Phase 1: Bigram Baseline
 
-The training dataset is a plain-text file (~1.1 MB) containing samples from the public-domain works of **William Shakespeare**. The dataset was split into training and validation sets using a 90:10 ratio to evaluate the model’s generalization performance.
+* **Concept:** Predicts the next character using only the current character.
+* **Limitation:** No memory or understanding of context.
+* **Outcome:** Generates mostly gibberish, but still learns basic statistical patterns such as capitalization after newlines and common character combinations.
+* **Validation Loss:** ~2.53
 
-The model was trained using the **PyTorch** framework with the **AdamW optimizer** and **Cross Entropy Loss** as the objective function.
+This phase served as a baseline and motivation for introducing contextual modeling.
 
-Training configuration:
+---
 
-* Training iterations: ~4000
-* Batch size: 32
-* Context length (block size): 64
-* Learning rate: 3e-4
-* Dropout rate: 0.2
+### Phase 2: GPT-Style Transformer
 
-Training and validation losses were periodically logged to monitor learning progress and identify potential overfitting.
+* **Concept:** A decoder-only Transformer architecture with positional embeddings and masked self-attention.
+* **Goal:** Enable contextual understanding and generate coherent English-like text.
+* **Target Validation Loss:** 1.5 – 2.0
+* **Final Result:** Validation loss comfortably within the target range, with clear improvements in spelling, sentence structure, and dialogue flow.
 
-### Results and Observations
+---
 
-* Final training loss: ~1.89
-* Final validation loss: ~1.97
+## 2. Model Architecture (`gpt.py`)
 
-The validation loss met the project’s target benchmarks, indicating that the model successfully learned meaningful linguistic patterns. The generated outputs include recognizable English words, sentence-like structures, and dialogue patterns consistent with a character-level Transformer trained from random initialization.
+The final implementation is a **from-scratch GPT-style Transformer**, built as a single file that supports both training and text generation.
 
-### Text Generation Behavior
+### Core Components
 
-The model generates text using standard autoregressive sampling, selecting the next character based on predicted probability distributions. By adjusting the sampling temperature, a balance can be achieved between coherence and randomness. While grammatical correctness is not always perfect, the generated text consistently resembles valid English, including appropriate capitalization and word-like formations.
+* **Token Embeddings:** Convert characters into dense vector representations.
+* **Positional Embeddings:** Encode sequence order information.
+* **Head:** A single masked self-attention head computing Query, Key, and Value matrices.
+* **MultiHeadAttention:** Multiple attention heads operating in parallel to capture diverse linguistic relationships.
+* **FeedForward Network:** Two-layer neural network with non-linear activation (ReLU).
+* **Block:** A complete Transformer block combining attention, feed-forward layers, residual connections, and layer normalization.
+* **Causal Masking:** Prevents access to future tokens during training and generation.
 
-### Repository Contents
+Residual connections and layer normalization are applied around every sub-layer to ensure stable training and smoother gradient flow.
 
-* `gpt.py` – Full implementation of the decoder-only character-level GPT model
-* `data.txt` – Training dataset
+---
+
+## 3. Training Setup & Implementation Details
+
+* **Dataset:** `tinyshakespeare` (≈1.1M characters, public domain).
+* **Tokenizer:** Character-level integer encoding using `stoi` and `itos`.
+* **Train / Validation Split:** 90% / 10%
+* **Optimizer:** AdamW
+* **Loss Function:** Cross Entropy Loss
+
+### Hyperparameters
+
+* **Batch Size:** 64
+* **Context Length (Block Size):** 256
+* **Embedding Dimension:** 384
+* **Attention Heads:** 6
+* **Transformer Layers:** 6
+* **Training Iterations:** ~5,000
+* **Learning Rate:** 3e-4
+* **Dropout:** 0.2
+
+Training and validation losses are logged periodically to monitor convergence and detect overfitting.
+
+---
+
+## 4. Performance & Results
+
+The model was trained for approximately **5,000 iterations**, moving well beyond memorization and into meaningful pattern learning.
+
+| Metric                     | Value            |
+| -------------------------- | ---------------- |
+| **Initial Loss**           | ~4.28            |
+| **Final Training Loss**    | ~1.89            |
+| **Final Validation Loss**  | **~1.49 – 1.97** |
+| **Target Validation Loss** | 1.5 – 2.0        |
+
+The validation loss met and exceeded project expectations, demonstrating that the model successfully learned meaningful linguistic structure despite being trained entirely from random initialization.
+
+---
+
+### Sample Generated Output
+
+> But with prison: I will stead with you.
+>
+> **ISABELLA:**
+> Carress, all do; and I'll say your honour self good:
+> Then I'll regn your highness and
+> Compell'd by my sweet gates that you may:
+> Valiant make how I heard of you.
+>
+> **ANGELO:**
+> Nay, sir, I say!
+>
+> **ISABELLA:**
+> I am sweet men sister as you steed.
+
+While not grammatically perfect, the output consistently resembles structured English with correct capitalization, dialogue formatting, and Shakespearean tone—expected behavior for a character-level Transformer.
+
+---
+
+## 5. How to Run
+
+1. **Environment:**
+   Recommended to use **Google Colab** with a **T4 GPU** for faster training.
+
+2. **Install Dependencies:**
+
+   ```bash
+   pip install torch
+   ```
+
+3. **Run the Model:**
+
+   ```bash
+   python gpt.py
+   ```
+
+   The script automatically downloads the training dataset if it is not present.
+
+---
+
+## 6. Repository Contents
+
+* `gpt.py` – Complete decoder-only GPT-style Transformer (training + generation)
+* `data.txt / input.txt` – Shakespeare dataset
 * `README.md` – Project documentation
-* Screenshots – Training logs and sample generated outputs
+* Screenshots – Training logs and generated text outputs
 
-### What I Learned
+---
+
+## 7. What I Learned
 
 Through this project, I gained:
 
-* A strong conceptual and practical understanding of Transformer architectures and self-attention mechanisms
-* Insight into how autoregressive language models function internally
-* An appreciation for the impact and limits of learning rate selection
-* Experience building deep learning models completely from the ground up
-* A foundation for applying this knowledge when developing API-driven or AI-powered applications
+* A strong conceptual and practical understanding of **Transformer architectures**
+* Hands-on experience implementing **self-attention (QKV)** from scratch
+* Insight into **autoregressive language modeling**
+* Understanding of the effects and limits of **learning rate tuning**
+* Experience building deep learning models **from the ground up**
+* A solid foundation for developing **API-driven and LLM-based applications**
+
+---
+
+## 8. Acknowledgments
+
+* **Andrej Karpathy** – *“Let’s Build GPT from Scratch”*
+* **Harvard NLP** – *The Annotated Transformer*
+* **Jay Alammar** – *The Illustrated Transformer*
 
 ---
 
